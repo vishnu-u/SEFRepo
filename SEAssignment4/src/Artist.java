@@ -1,10 +1,14 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.*;
+
+import org.eclipse.jdt.annotation.Nullable;
+
 import java.text.SimpleDateFormat;  
 import java.util.Date;  
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import static java.nio.file.StandardCopyOption.*;
 
@@ -35,24 +39,36 @@ public class Artist {
  //Empty constructor to instantiate an object
  public Artist()
  {
-	 
+	
  }
  
+ //Static method to create the artists.txt file in the directory to prevent file not found errors
+ public static boolean createFile()
+ { File out;
+	try {
+		out = new File("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\artists.txt");
+		return true;
+	} catch (Exception e) {
+		return false;
+	}
+	 
+ }
 
  //Method to add an artist to a file. The method takes all the details of the artist as parameters
  //and performs validation before adding to the file. If success, the method returns true, else false
 public boolean addArtist(String id, String name, String address, String birthdate, String bio,
-	       ArrayList<String> occupations, ArrayList<String> genres, ArrayList<String> awards)
+	       ArrayList<String> occupations, ArrayList<String> genres, ArrayList<String> awards) 
  {
+	 
+	 //File handler
+	 FileWriter out = null;
+	 
 	 try
 	 {
 		 boolean Status = true;
-		 
-		 //File handler
-		 FileWriter out = null;
   
   //File handle to write artist details to file
-  out = new FileWriter("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\artists.txt",true);
+  out = new FileWriter("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\artists.txt",true);
   
   //Checking format for ArtistID
   int sub_cond1 = id.length();
@@ -75,7 +91,8 @@ public boolean addArtist(String id, String name, String address, String birthdat
    }
    else
    {
-	  return false;
+	 out.close();
+	 return false;
    }
   
    //Checking date format. Throws exception if not in correct format
@@ -86,7 +103,8 @@ public boolean addArtist(String id, String name, String address, String birthdat
   {
 	  if(address.split("\\|")[i].trim() == "")
 	  {
-		  return false;
+		  out.close();
+		 return false;
 	  }
 	  else
 	  {
@@ -102,6 +120,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
   }
   else
   {
+	out.close();
     return false;
   }
   
@@ -112,6 +131,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
   }
   else
   {
+	  out.close();
 	  return false;
   }
   
@@ -122,6 +142,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
   }
   else
   {
+	  out.close();
 	  return false;
   }
   
@@ -140,12 +161,14 @@ public boolean addArtist(String id, String name, String address, String birthdat
 		  }
 		  else
 		  {
+			  out.close();
 			  return false;
 		  }
 	  }
   }
   else
   {
+	  out.close();
 	  return false;
   }
   
@@ -154,7 +177,8 @@ public boolean addArtist(String id, String name, String address, String birthdat
   {
 	  if(genres.stream().map(x->x.toLowerCase()).toList().contains("pop") && genres.stream().map(x->x.toLowerCase()).toList().contains("rock"))
 	  {
-		  return false;
+		  out.close();
+		 return false;
 	  }
 	  else
 	  {
@@ -163,14 +187,16 @@ public boolean addArtist(String id, String name, String address, String birthdat
   }
   else
   {
+	  out.close();
 	  return false;
   }
      
      //Writing the content to the file with ~ as the separator
      out.write(id + "~"+ name + "~" + address + "~" + birthdate + "~" + bio + "~" +
   	           String.join(",", occupations) + "~" + String.join(",", genres) + "~" + String.join(",", awards) + "\n");
+ 
      out.close();
-     return true;
+     return Status;
 	 }
 	 catch(Exception ex)
 	 {
@@ -179,7 +205,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
  }
  
 //Method to update the data in the file. The entity, id and value are taken as parameters.
- public boolean UpdateFile(String entity, String id, String value) throws IOException
+ public boolean UpdateFile(String entity, String id, String value, int awardno) throws IOException
  {
 	 //File handles
 	 FileReader in = null;
@@ -189,30 +215,54 @@ public boolean addArtist(String id, String name, String address, String birthdat
 	 
 	 try
 	 {
-	 //Reading the source file
-	 in = new FileReader("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\artists.txt");
-	 Reader = new BufferedReader(in);
-	 
+	     in = new FileReader("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\artists.txt");
+	 	 Reader = new BufferedReader(in);
+	
 	 //Initiating a temp file to write the edited data
-	 out = new FileWriter("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\temp.txt");
+	 out = new FileWriter("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\temp.txt");
+	 boolean Status = true;
+	 ReadLine = Reader.readLine();
+
 	 
 	 //Reading all lines to get the artists with the given ID. If not there, the line is written to file
 	 //If found the necessary editings are done and then written to temp file
-	 while((ReadLine=Reader.readLine()) != null)
+	 while(ReadLine != null)
 	 {
 	   //If the read ID does not match the supplied ID, write the last as it is to temp file
-	   if(ReadLine.split("~")[0].equals(id) == false)
+	   if(ReadLine.split("~")[0].strip().trim().equals(id) == false)
 	   {
-		   out.write(ReadLine);
+		   System.out.print(ReadLine + "\n");
+		   out.write(ReadLine + "\n");
 	   }
 	   else
 	   {   
 		   //If the entity for editing is address
-		   if(entity == "address")
+		   if(entity == "address" && value.split("\\|").length == 3)
 		   {
+			      //Checking address format
+				  for(int i =0;i<value.split("\\|").length;i++)
+				  {
+					  if(value.split("\\|")[i].trim() == "")
+					 {
+						  Status = false;
+						  break;
+					  }
+					  else
+					  {
+						  Status = true;
+					  }
+				  }
+
+			   if(Status == true) 
+			   {
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[2] = value;
-			   out.write(String.join("~",Splitted));
+			   out.write(String.join("~",Splitted) + "\n");
+			   }
+			   else
+			   {
+				   out.write(ReadLine + "\n");
+			   }
 		   }
 		   
 		   //If the entity for editing is birthdate
@@ -220,7 +270,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 		   {
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[3] = value;
-			   out.write(String.join("~",Splitted));
+			   out.write(String.join("~",Splitted) + "\n");
 		   }
 		   
 		   //If the entity for editing is bio
@@ -228,7 +278,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 		   {
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[4] = value;
-			   out.write(String.join("~",Splitted));
+			   out.write(String.join("~",Splitted) + "\n");
 		   }
 		   
 		   //If the entity for editing is occupations
@@ -236,7 +286,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 		   {
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[5] = value;
-			   out.write(String.join("~",Splitted));
+			   out.write(String.join("~",Splitted) + "\n");
 		   }
 		   
 		   //If the entity for editing is genres
@@ -244,37 +294,59 @@ public boolean addArtist(String id, String name, String address, String birthdat
 		   {
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[6] = value;
-			   out.write(String.join("~",Splitted));
+			   out.write(String.join("~",Splitted) + "\n");
 		   }
 		   
 		   //If the entity for editing is awards
 		   else if(entity == "awards")
 		   {
+			   //Splitting awards line into array
+				 String[] awards_line = ReadLine.split("~")[ReadLine.split("~").length-1].split(",");
+				 ArrayList<String> awards_file = new ArrayList<String>();
+				 String[] awards = value.split(",");
+				 //Joining year and title of awards in comma separated format
+				 for(int i = 0;i<awards_line.length;i+=2)
+				 {
+				   	 awards_file.add(awards_line[i] + "," + awards_line[i+1]);
+				 }
+				 
+				 //If award year is less than 2000, then editing is not allowed
+				 if(Integer.parseInt(awards_file.get(awardno).split(",")[0]) < 2000)
+				 {
+					 Status = false;
+				 }
+				 else
+				 {
+					 //Update the awards data
+					 awards_file.set(awardno, awards[0]);
+					 
+				 }
 			   String[] Splitted = ReadLine.split("~");
 			   Splitted[7] = value;
-			   out.write(String.join("~",Splitted));
-		   }
-		   
-		   //Closing all streams and open files
-		   in.close();
-		   out.close();
-		   Reader.close();
-		   
-		   //Reading the source file
-		   File TempFile = new File("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\temp.txt");
-		   
-		   //Deleting the source file since changes are written to temp file
-		   Files.deleteIfExists(Paths.get("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\artists.txt"));
-		   
-		   //Renaming temp file to source file name
-		   Files.move(Paths.get("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\temp.txt"), Paths.get("C:\\Users\\Asus\\eclipse-workspace\\SEAssignment4\\src\\artists.txt"),REPLACE_EXISTING);
-		   
+			   out.write(String.join("~",Splitted) + "\n");
+		   }  
 	   }
+	   ReadLine = Reader.readLine();
 	 }
-	   return true; 
+	 
+	//Closing all streams and open files
+	   in.close();
+	   out.close();
+	   Reader.close();
+	   
+	 //Reading the source file
+	   File TempFile = new File("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\temp.txt");
+	   
+	   //Deleting the source file since changes are written to temp file
+	   Files.deleteIfExists(Paths.get("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\artists.txt"));
+	   
+	   //Renaming temp file to source file name
+	   Files.move(Paths.get("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\temp.txt"), Paths.get("C:\\Users\\Asus\\git\\SEFRepo\\SEAssignment4\\src\\artists.txt"),REPLACE_EXISTING);
+	   return Status; 
 	 }
 	 catch(Exception E)
 	 {
+		 System.out.print("Error: " + E.toString());
 		 return false;
 	 }
 	 finally
@@ -292,7 +364,6 @@ public boolean addArtist(String id, String name, String address, String birthdat
  {
 	 try
 	 {
-	 boolean Status = true;
 	 
 	 //There should be a valid ID to perform an updation
 	 if(id == null)
@@ -303,48 +374,12 @@ public boolean addArtist(String id, String name, String address, String birthdat
 	 //If there is an ID supplied, check if it is a valid one
 	 else
 	 {
-		 //Reading the source file
-		 FileReader in = new FileReader("D:\\Personal\\SE\\Assignment 4\\artists.txt");
-		 BufferedReader Reader = new BufferedReader(in);
-		 String line;
-		 
-		 //Reading each line in the file
-		 while((line = Reader.readLine()) != null)
-		 {
-			 //If there is an artist with the given ID
-			 if(line.split("~")[0].strip().trim().toUpperCase().equals(id.strip().trim().toUpperCase()))
-			 {
-				 
-				 //Update address if all conditions are met
-				 if(address != null)
-				 { 
-				   //Checking address format
-				  for(int i =0;i<address.split("\\|").length;i++)
-				  {
-					  if(address.split("\\|")[i].trim() == "")
-					 {
-						  return false;
-					  }
-					  else
-					  {
-						  Status = true;
-					  }
-					  
-				  }
-				  
-				  //Checking if there are three elements in the address
-				  if(address.split("\\|").length == 3)
-				  {
-					  Status = true;
-				  }
-				  else
-				  {
-				    return false;
-				  }
-				 
-				 //Calling update file with the data
-				 UpdateFile("address",id,address);
-				 }
+		//Update address if all conditions are met
+		if(address != null)
+		{ 
+		    //Calling update file with the data
+		    return UpdateFile("address",id,address,-1);
+		}
 				 
 				 //Update date of birth if format is correct
 				 if(birthdate != null)
@@ -354,7 +389,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 				 Date Convertedbirthdate=SimpleDate.parse(birthdate);
 				 
 				 //Calling update file with the data
-				 UpdateFile("birthdate",id,birthdate);
+				 return UpdateFile("birthdate",id,birthdate,-1);
 				 }
 				 
 				 //Update bio if all conditions are met
@@ -364,7 +399,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 					  if(bio.split(" ").length >= 10 && bio.split(" ").length <= 30)
 					  {
 						  //Calling update file with the data
-						  UpdateFile("bio",id,bio);
+						  return UpdateFile("bio",id,bio,-1);
 					  }
 					  else
 					  {
@@ -378,7 +413,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 					  if(occupations.size() >= 1 && occupations.size() <= 5)
 					  {
 						  //Calling update file with the data
-						  UpdateFile("occupations",id,String.join(",", occupations));
+						  return UpdateFile("occupations",id,String.join(",", occupations),-1);
 					  }
 					  
 					  else
@@ -400,7 +435,7 @@ public boolean addArtist(String id, String name, String address, String birthdat
 						  else
 						  {
 							  //Calling update file with the data
-							  UpdateFile("genres",id,String.join(",", genres));
+							  return UpdateFile("genres",id,String.join(",", genres),-1);
 						  }
 					  }
 					  else
@@ -412,38 +447,11 @@ public boolean addArtist(String id, String name, String address, String birthdat
 				 //Update awards if all conditions are met
 				 if(awards != null)
 				 {
-				 //Splitting awards line into array
-				 String[] awards_line = line.split("~")[line.split("~").length-1].split(",");
-				 ArrayList<String> awards_file = new ArrayList<String>();
-				 
-				 //Joining year and title of awards in comma separated format
-				 for(int i = 0;i<awards_line.length;i+=2)
-				 {
-				   	 awards_file.add(awards_line[i] + "," + awards_line[i+1]);
-				 }
-				 
-				 //If award year is less than 2000, then editing is not allowed
-				 if(Integer.parseInt(awards_file.get(awardno).split(",")[0]) < 2000)
-				 {
-					 return false;
-				 }
-				 else
-				 {
-					 //Update the awards data
-					 awards_file.set(awardno, awards.get(0));
-					 
 					 //Calling update file with the data
-					 UpdateFile("awards",id,String.join(",", awards_file));
-				 }
+					 return UpdateFile("awards",id,String.join(",", awards),awardno);
 				 }
 				  
 			 }
-			 else
-			 {
-				 return false;
-			 }
-		 }
-	 }
 	 return true;
 	 }
 	 catch(Exception E)
