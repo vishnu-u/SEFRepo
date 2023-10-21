@@ -419,7 +419,16 @@ class SEFTest {
 	{
 		boolean Result_TD1 = artist.updateArtist("569MMMRR_%", null, "Sydney|NSW|AU", null, null, null, null, null,0);
 		boolean Result_TD2 = artist.updateArtist("678ACDFG_%", null, "Brisbane|QLD|AU", null, null, null, null, null,0);
-		assertEquals(Result_TD1,true);
+		assertEquals(Result_TD1 && Result_TD2,true);
+	}
+	
+	//Test Method to update the address of an artist with an invalid address format
+	@Test
+	void TestUpdateArtist_Address_InValid()
+	{
+		boolean Result_TD1 = artist.updateArtist("569MMMRR_%", null, "Sydney,NSW,AU", null, null, null, null, null,0);
+		boolean Result_TD2 = artist.updateArtist("678ACDFG_%", null, "Brisbane QLD AU", null, null, null, null, null,0);
+		assertEquals(Result_TD1 && Result_TD2,false);
 	}
 	
 	//Test Method to update the birthdate of an artist with a valid birthdate

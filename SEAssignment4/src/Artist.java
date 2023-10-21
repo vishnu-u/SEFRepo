@@ -231,14 +231,15 @@ public boolean addArtist(String id, String name, String address, String birthdat
 	   //If the read ID does not match the supplied ID, write the last as it is to temp file
 	   if(ReadLine.split("~")[0].strip().trim().equals(id) == false)
 	   {
-		   System.out.print(ReadLine + "\n");
 		   out.write(ReadLine + "\n");
 	   }
 	   else
 	   {   
 		   //If the entity for editing is address
-		   if(entity == "address" && value.split("\\|").length == 3)
+		   if(entity == "address")
 		   {
+			   if(value.split("\\|").length == 3)
+			   {
 			      //Checking address format
 				  for(int i =0;i<value.split("\\|").length;i++)
 				  {
@@ -252,6 +253,11 @@ public boolean addArtist(String id, String name, String address, String birthdat
 						  Status = true;
 					  }
 				  }
+			   }
+			   else
+			   {
+				   Status = false;
+			   }
 
 			   if(Status == true) 
 			   {
@@ -346,7 +352,6 @@ public boolean addArtist(String id, String name, String address, String birthdat
 	 }
 	 catch(Exception E)
 	 {
-		 System.out.print("Error: " + E.toString());
 		 return false;
 	 }
 	 finally
